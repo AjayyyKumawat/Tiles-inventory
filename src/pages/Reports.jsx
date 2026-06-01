@@ -76,14 +76,44 @@ export default function Reports() {
   );
 
   const summary = useMemo(() => {
-    const productLookup = new Map(products.map((product) => [String(product._id || product.id), product]));
+    // Build multiple lookup maps for robust product matching
+    const idMap = new Map();
+    const nameMap = new Map();
+    products.forEach((product) => {
+      const id1 = String(product._id || '');
+      const id2 = String(product.id || '');
+      if (id1) idMap.set(id1, product);
+      if (id2) idMap.set(id2, product);
+      if (product.name) nameMap.set(product.name.toLowerCase(), product);
+    });
+
+    // Multi-strategy product finder for an order
+    const findProductForOrder = (order) => {
+      // Strategy 1: Direct ID lookup
+      if (order.productId) {
+        const byId = idMap.get(String(order.productId));
+        if (byId) return byId;
+      }
+      // Strategy 2: Exact tileName match
+      if (order.tileName) {
+        const byName = nameMap.get(order.tileName.toLowerCase());
+        if (byName) return byName;
+        // Strategy 3: Partial name match (handles "Ivory Pearl GVT" vs "Ivory Marble GVT")
+        const orderWords = order.tileName.toLowerCase().split(/\s+/);
+        for (const product of products) {
+          const productWords = product.name.toLowerCase().split(/\s+/);
+          const matchCount = orderWords.filter(w => productWords.includes(w)).length;
+          if (matchCount >= 2 && matchCount >= orderWords.length * 0.5) return product;
+        }
+      }
+      return null;
+    };
+
     const totalRevenue = filteredOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
     const totalCosts = filteredOrders.reduce((sum, order) => {
-      let product = productLookup.get(String(order.productId || ''));
-      if (!product && order.tileName) {
-        product = products.find(p => p.name.toLowerCase() === order.tileName.toLowerCase());
-      }
-      return sum + ((Number(product?.costPrice ?? product?.cost) || 0) * (Number(order.qty) || 0));
+      const product = findProductForOrder(order);
+      const unitCost = Number(product?.costPrice ?? product?.cost) || 0;
+      return sum + (unitCost * (Number(order.qty) || 0));
     }, 0);
     const netProfit = totalRevenue - totalCosts;
     const avgMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;

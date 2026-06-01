@@ -6,18 +6,39 @@ function parseOrderDate(order) {
   return Number.isNaN(date.getTime()) ? new Date() : date;
 }
 
-function buildProductLookup(products) {
-  return new Map(
-    products.map((product) => [
-      String(product._id || product.id),
-      product,
-    ])
-  );
+function buildProductFinder(products) {
+  const idMap = new Map();
+  const nameMap = new Map();
+  products.forEach((product) => {
+    const id1 = String(product._id || '');
+    const id2 = String(product.id || '');
+    if (id1) idMap.set(id1, product);
+    if (id2) idMap.set(id2, product);
+    if (product.name) nameMap.set(product.name.toLowerCase(), product);
+  });
+
+  return (order) => {
+    if (order.productId) {
+      const byId = idMap.get(String(order.productId));
+      if (byId) return byId;
+    }
+    if (order.tileName) {
+      const byName = nameMap.get(order.tileName.toLowerCase());
+      if (byName) return byName;
+      const orderWords = order.tileName.toLowerCase().split(/\s+/);
+      for (const product of products) {
+        const productWords = product.name.toLowerCase().split(/\s+/);
+        const matchCount = orderWords.filter(w => productWords.includes(w)).length;
+        if (matchCount >= 2 && matchCount >= orderWords.length * 0.5) return product;
+      }
+    }
+    return null;
+  };
 }
 
 export function buildRevenueSeries(salesOrders, products, monthCount = 12) {
   const now = new Date();
-  const productLookup = buildProductLookup(products);
+  const findProduct = buildProductFinder(products);
   const buckets = [];
 
   for (let index = monthCount - 1; index >= 0; index -= 1) {
@@ -44,10 +65,7 @@ export function buildRevenueSeries(salesOrders, products, monthCount = 12) {
 
     const revenue = Number(order.total) || 0;
     const qty = Number(order.qty) || 0;
-    let product = productLookup.get(String(order.productId || ''));
-    if (!product && order.tileName) {
-      product = products.find(p => p.name.toLowerCase() === order.tileName.toLowerCase());
-    }
+    const product = findProduct(order);
     const unitCost = Number(product?.costPrice ?? product?.cost ?? 0);
     const cost = unitCost * qty;
 
@@ -90,7 +108,7 @@ export function buildCategoryDistribution(products) {
 }
 
 export function buildTopProducts(salesOrders, products, limit = 5) {
-  const productLookup = buildProductLookup(products);
+  const findProduct = buildProductFinder(products);
   const aggregates = new Map();
 
   salesOrders.forEach((order) => {
@@ -102,10 +120,7 @@ export function buildTopProducts(salesOrders, products, limit = 5) {
       revenue: 0,
     };
 
-    let product = productLookup.get(String(order.productId || ''));
-    if (!product && order.tileName) {
-      product = products.find(p => p.name.toLowerCase() === order.tileName.toLowerCase());
-    }
+    const product = findProduct(order);
     current.name = product?.name || current.name;
     current.category = product?.category || current.category;
     current.units += Number(order.qty) || 0;
