@@ -2,7 +2,7 @@
 
 A professional-grade, full-stack Enterprise Resource Planning (ERP) platform designed specifically for tile retailers, wholesale distributors, and suppliers. This system features real-time inventory tracking, secure role-based access control (RBAC), sales order management, transaction auditing, and business analytics.
 
-🌐 **Production Live Demo**: *[Add your live deployment link here, e.g., Vercel + Render]*
+🌐 **Production Live Demo**: https://tiles-inventory-alpha.vercel.app/reports
 
 ---
 
