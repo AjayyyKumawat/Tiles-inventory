@@ -79,7 +79,10 @@ export default function Reports() {
     const productLookup = new Map(products.map((product) => [String(product._id || product.id), product]));
     const totalRevenue = filteredOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
     const totalCosts = filteredOrders.reduce((sum, order) => {
-      const product = productLookup.get(String(order.productId || ''));
+      let product = productLookup.get(String(order.productId || ''));
+      if (!product && order.tileName) {
+        product = products.find(p => p.name.toLowerCase() === order.tileName.toLowerCase());
+      }
       return sum + ((Number(product?.costPrice ?? product?.cost) || 0) * (Number(order.qty) || 0));
     }, 0);
     const netProfit = totalRevenue - totalCosts;

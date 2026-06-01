@@ -44,7 +44,10 @@ export function buildRevenueSeries(salesOrders, products, monthCount = 12) {
 
     const revenue = Number(order.total) || 0;
     const qty = Number(order.qty) || 0;
-    const product = productLookup.get(String(order.productId || ''));
+    let product = productLookup.get(String(order.productId || ''));
+    if (!product && order.tileName) {
+      product = products.find(p => p.name.toLowerCase() === order.tileName.toLowerCase());
+    }
     const unitCost = Number(product?.costPrice ?? product?.cost ?? 0);
     const cost = unitCost * qty;
 
@@ -99,7 +102,10 @@ export function buildTopProducts(salesOrders, products, limit = 5) {
       revenue: 0,
     };
 
-    const product = productLookup.get(String(order.productId || ''));
+    let product = productLookup.get(String(order.productId || ''));
+    if (!product && order.tileName) {
+      product = products.find(p => p.name.toLowerCase() === order.tileName.toLowerCase());
+    }
     current.name = product?.name || current.name;
     current.category = product?.category || current.category;
     current.units += Number(order.qty) || 0;
