@@ -64,25 +64,58 @@ function useToast() {
   return { toasts, push };
 }
 
-// ─── Animated Counter ─────────────────────────────────────────────────────────
-function AnimatedNumber({ value }) {
+function AnimatedNumber({ value, formatter }) {
   const [display, setDisplay] = useState(value);
   const prev = useRef(value);
+
   useEffect(() => {
     const from = prev.current;
     prev.current = value;
     if (from === value) return;
     let start = null;
+    const duration = 800; // ms
     const step = (ts) => {
       if (!start) start = ts;
-      const p = Math.min((ts - start) / 700, 1);
-      const ease = 1 - Math.pow(1 - p, 3);
-      setDisplay(Math.round(from + (value - from) * ease));
-      if (p < 1) requestAnimationFrame(step);
+      const progress = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const currentVal = from + (value - from) * ease;
+      setDisplay(currentVal);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
     };
-    requestAnimationFrame(step);
+    const frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
   }, [value]);
-  return <>{display.toLocaleString('en-IN')}</>;
+
+  return <>{formatter ? formatter(display) : Math.round(display).toLocaleString('en-IN')}</>;
+}
+
+const cardVariants = {
+  initial: { opacity: 0, y: 24 },
+  animate: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: index * 0.1,
+      duration: 0.5,
+      ease: [0.23, 1, 0.32, 1],
+    },
+  }),
+  hover: {
+    y: -4,
+    scale: 1.015,
+    boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.25)',
+    transition: { duration: 0.25, ease: 'easeOut' },
+  },
+};
+
+const iconVariants = {
+  hover: {
+    scale: 1.15,
+    rotate: 8,
+    transition: { type: 'spring', stiffness: 300, damping: 15 },
+  },
 }
 
 // ─── Form Primitives ──────────────────────────────────────────────────────────
@@ -165,7 +198,7 @@ function SOModal({ data, onChange, onSave, onCancel, errors, isNew, nextId, inve
 
   return (
     <Modal onClose={onCancel}>
-      <div className="w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
+      <form onSubmit={(e) => { e.preventDefault(); onSave(); }} className="w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
         {/* Header */}
         <div className="p-5 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
           <div>
@@ -176,7 +209,7 @@ function SOModal({ data, onChange, onSave, onCancel, errors, isNew, nextId, inve
               {isNew ? `New order will be assigned ID #${nextId}` : `Editing Order #${data.id}`}
             </p>
           </div>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={onCancel}
+          <motion.button type="button" whileTap={{ scale: 0.9 }} onClick={onCancel}
             className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white bg-black/5 dark:bg-white/5 rounded-lg transition-colors border border-black/10 dark:border-white/10">
             <span className="material-symbols-outlined text-sm">close</span>
           </motion.button>
@@ -245,16 +278,16 @@ function SOModal({ data, onChange, onSave, onCancel, errors, isNew, nextId, inve
 
         {/* Footer */}
         <div className="p-5 border-t border-black/10 dark:border-white/10 flex justify-end gap-3 bg-black/20 rounded-b-lg">
-          <motion.button whileTap={{ scale: 0.96 }} onClick={onCancel}
+          <motion.button type="button" whileTap={{ scale: 0.96 }} onClick={onCancel}
             className="px-4 py-2 text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:text-white hover:bg-black/5 dark:bg-white/5 rounded-lg transition-colors">
             Cancel
           </motion.button>
-          <motion.button whileTap={{ scale: 0.96 }} onClick={onSave}
+          <motion.button type="submit" whileTap={{ scale: 0.96 }}
             className="px-5 py-2 text-[13px] font-bold bg-executive-blue hover:brightness-110 text-gray-900 dark:text-white rounded-lg transition-all shadow-lg shadow-executive-blue/20">
             {isNew ? 'Create Order' : 'Save Changes'}
           </motion.button>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }
@@ -296,18 +329,17 @@ function DeleteConfirm({ orderId, customerName, onConfirm, onCancel }) {
 function StatCard({ card, index }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.09, duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
+      custom={index}
       className="glass-panel p-6 rounded-lg card-light-source cursor-default"
     >
       <div className="flex justify-between items-start mb-4">
         <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">{card.label}</span>
         <motion.span
-          initial={{ scale: 0, rotate: -20 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ delay: index * 0.09 + 0.2, type: 'spring', stiffness: 300 }}
+          variants={iconVariants}
           className={`material-symbols-outlined text-lg ${card.iconColor || 'text-gray-500'}`}
           style={card.fill ? { fontVariationSettings: "'FILL' 1" } : {}}
         >
@@ -316,9 +348,11 @@ function StatCard({ card, index }) {
       </div>
       <div className="flex items-baseline gap-2">
         <h3 className={`text-[42px] font-bold leading-[1.1] tracking-[-0.02em] ${card.color || 'text-gray-900 dark:text-white'}`}>
-          {card.currency !== undefined
-            ? formatCurrency(card.currency)
-            : <AnimatedNumber value={card.value} />}
+          {card.currency !== undefined ? (
+            <AnimatedNumber value={card.currency} formatter={formatCurrency} />
+          ) : (
+            <AnimatedNumber value={card.value} />
+          )}
         </h3>
         {card.badge && <span className="text-amber-500 text-xs font-bold">{card.badge}</span>}
       </div>
@@ -434,9 +468,9 @@ export default function SalesOrders() {
       tileName: '',
       category: '2×2 ft',
       status: 'Pending',
-      qty: 1,
-      pricePerBox: 0,
-      total: 0,
+      qty: '',
+      pricePerBox: '',
+      total: '',
       date: new Date().toISOString().split('T')[0],
     },
   });
@@ -446,12 +480,19 @@ export default function SalesOrders() {
     const errs = validate(modal.data);
     if (Object.keys(errs).length) return setModal((m) => ({ ...m, errors: errs }));
 
+    const payload = {
+      ...modal.data,
+      qty: Number(modal.data.qty) || 0,
+      pricePerBox: Number(modal.data.pricePerBox) || 0,
+      total: Number(modal.data.total) || 0,
+    };
+
     try {
       if (modal.isNew) {
-        await dispatch(createSalesOrder(modal.data)).unwrap();
+        await dispatch(createSalesOrder(payload)).unwrap();
         pushToast(`Order created for "${modal.data.customerName}"`);
       } else {
-        await dispatch(editSalesOrder({ id: modal.data._id, data: modal.data })).unwrap();
+        await dispatch(editSalesOrder({ id: modal.data._id, data: payload })).unwrap();
         pushToast('Order updated');
       }
 

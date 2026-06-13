@@ -68,7 +68,7 @@ function useToast() {
 }
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
-function AnimatedNumber({ value }) {
+function AnimatedNumber({ value, formatter }) {
   const [display, setDisplay] = useState(value);
   const prev = useRef(value);
 
@@ -77,18 +77,50 @@ function AnimatedNumber({ value }) {
     prev.current = value;
     if (from === value) return;
     let start = null;
+    const duration = 800; // ms
     const step = (ts) => {
       if (!start) start = ts;
-      const p = Math.min((ts - start) / 700, 1);
-      const ease = 1 - Math.pow(1 - p, 3);
-      setDisplay(Math.round(from + (value - from) * ease));
-      if (p < 1) requestAnimationFrame(step);
+      const progress = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const currentVal = from + (value - from) * ease;
+      setDisplay(currentVal);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
     };
-    requestAnimationFrame(step);
+    const frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
   }, [value]);
 
-  return <>{display.toLocaleString()}</>;
+  return <>{formatter ? formatter(display) : Math.round(display).toLocaleString()}</>;
 }
+
+const cardVariants = {
+  initial: { opacity: 0, y: 24 },
+  animate: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: index * 0.1,
+      duration: 0.5,
+      ease: [0.23, 1, 0.32, 1],
+    },
+  }),
+  hover: {
+    y: -4,
+    scale: 1.015,
+    boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.25)',
+    transition: { duration: 0.25, ease: 'easeOut' },
+  },
+};
+
+const iconVariants = {
+  hover: {
+    scale: 1.15,
+    rotate: 8,
+    transition: { type: 'spring', stiffness: 300, damping: 15 },
+  },
+};
 
 // ─── Form primitives ──────────────────────────────────────────────────────────
 function GInput({ label, value, onChange, error, type = 'text', min, step, placeholder, autoFocus }) {
@@ -152,7 +184,7 @@ function ItemModal({ data, onChange, onSave, onCancel, errors, isNew }) {
 
   return (
     <Modal onClose={onCancel}>
-      <div className="w-[500px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
+      <form onSubmit={(e) => { e.preventDefault(); onSave(); }} className="w-[500px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
         <div className="p-5 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
           <div>
             <h2 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">
@@ -162,7 +194,7 @@ function ItemModal({ data, onChange, onSave, onCancel, errors, isNew }) {
               {isNew ? 'Fill in tile product details below' : `Editing "${data.name}"`}
             </p>
           </div>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={onCancel}
+          <motion.button type="button" whileTap={{ scale: 0.9 }} onClick={onCancel}
             className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white bg-black/5 dark:bg-white/5 rounded-lg transition-colors border border-black/10 dark:border-white/10">
             <span className="material-symbols-outlined text-sm">close</span>
           </motion.button>
@@ -191,16 +223,16 @@ function ItemModal({ data, onChange, onSave, onCancel, errors, isNew }) {
         </div>
 
         <div className="p-5 border-t border-black/10 dark:border-white/10 flex justify-end gap-3 bg-black/20 rounded-b-lg">
-          <motion.button whileTap={{ scale: 0.96 }} onClick={onCancel}
+          <motion.button type="button" whileTap={{ scale: 0.96 }} onClick={onCancel}
             className="px-4 py-2 text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:text-white hover:bg-black/5 dark:bg-white/5 rounded-lg transition-colors">
             Cancel
           </motion.button>
-          <motion.button whileTap={{ scale: 0.96 }} onClick={onSave}
+          <motion.button type="submit" whileTap={{ scale: 0.96 }}
             className="px-5 py-2 text-[13px] font-bold bg-executive-blue hover:brightness-110 text-gray-900 dark:text-white rounded-lg transition-all shadow-lg shadow-executive-blue/20">
             {isNew ? 'Add Tile' : 'Save Changes'}
           </motion.button>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }
@@ -342,18 +374,17 @@ function DeleteConfirm({ name, onConfirm, onCancel }) {
 function StatCard({ card, index }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.09, duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
+      custom={index}
       className="glass-panel p-6 rounded-lg card-light-source cursor-default"
     >
       <div className="flex justify-between items-start mb-4">
         <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">{card.label}</span>
         <motion.span
-          initial={{ scale: 0, rotate: -20 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ delay: index * 0.09 + 0.2, type: 'spring', stiffness: 300 }}
+          variants={iconVariants}
           className={`material-symbols-outlined text-lg ${card.iconColor || 'text-gray-500'}`}
           style={card.iconColor ? { fontVariationSettings: "'FILL' 1" } : {}}
         >
@@ -362,9 +393,11 @@ function StatCard({ card, index }) {
       </div>
       <div className="flex items-baseline gap-2">
         <h3 className={`text-[48px] font-bold leading-[1.1] tracking-[-0.02em] ${card.color || 'text-gray-900 dark:text-white'}`}>
-          {card.currency !== undefined
-            ? formatCurrency(card.currency)
-            : <AnimatedNumber value={card.value} />}
+          {card.currency !== undefined ? (
+            <AnimatedNumber value={card.currency} formatter={formatCurrency} />
+          ) : (
+            <AnimatedNumber value={card.value} />
+          )}
         </h3>
         {card.badge && <span className="text-amber-500 text-xs font-bold">{card.badge}</span>}
       </div>
@@ -467,7 +500,7 @@ export default function Inventory() {
   // ── Open add modal ────────────────────────────────────────────────────────
   const openAdd = () => setModal({
     open: true, isNew: true, errors: {},
-    data: { name: '', brand: 'Generic', category: '2×2 ft', stock: 0, cost: 0, price: 0, reorderPoint: 20 },
+    data: { name: '', brand: '', category: '2×2 ft', stock: '', cost: '', price: '', reorderPoint: '' },
   });
 
   // ── Save (add or update) via backend ─────────────────────────────────────
@@ -481,14 +514,14 @@ export default function Inventory() {
           name: modal.data.name,
           brand: modal.data.brand || 'Generic',
           category: modal.data.category,
-          stock: modal.data.stock,
-          costPrice: modal.data.cost,
-          sellingPrice: modal.data.price,
-          reorderPoint: modal.data.reorderPoint,
+          stock: Number(modal.data.stock) || 0,
+          costPrice: Number(modal.data.cost) || 0,
+          sellingPrice: Number(modal.data.price) || 0,
+          reorderPoint: Number(modal.data.reorderPoint) || 0,
           sku: `TIL-${Date.now()}`,
         };
         await dispatch(addProductThunk(payload)).unwrap();
-        const auditLog = makeAuditEntry('Added', modal.data, { newQty: modal.data.stock });
+        const auditLog = makeAuditEntry('Added', { ...modal.data, stock: Number(modal.data.stock) || 0 }, { newQty: Number(modal.data.stock) || 0 });
         await persistAuditLog(auditLog);
         pushToast(`"${modal.data.name}" added to inventory`);
       } else {
@@ -497,15 +530,15 @@ export default function Inventory() {
           name: modal.data.name,
           brand: modal.data.brand || 'Generic',
           category: modal.data.category,
-          stock: modal.data.stock,
-          costPrice: modal.data.cost,
-          sellingPrice: modal.data.price,
-          reorderPoint: modal.data.reorderPoint,
+          stock: Number(modal.data.stock) || 0,
+          costPrice: Number(modal.data.cost) || 0,
+          sellingPrice: Number(modal.data.price) || 0,
+          reorderPoint: Number(modal.data.reorderPoint) || 0,
         };
         await api.put(`/products/${modal.data.id}`, payload);
         dispatch(fetchProducts()); // Refresh from backend
-        const qtyChanged = original && original.stock !== modal.data.stock;
-        const auditLog = makeAuditEntry(qtyChanged ? 'Qty Changed' : 'Updated', modal.data, { prevQty: original?.stock ?? null, newQty: modal.data.stock });
+        const qtyChanged = original && original.stock !== Number(modal.data.stock);
+        const auditLog = makeAuditEntry(qtyChanged ? 'Qty Changed' : 'Updated', { ...modal.data, stock: Number(modal.data.stock) || 0 }, { prevQty: original?.stock ?? null, newQty: Number(modal.data.stock) || 0 });
         await persistAuditLog(auditLog);
         pushToast(`"${modal.data.name}" updated`);
       }

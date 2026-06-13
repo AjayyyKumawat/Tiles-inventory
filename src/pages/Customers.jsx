@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   createCustomer,
@@ -8,6 +8,7 @@ import {
 } from '../store/slices/customersSlice';
 import { fetchSalesOrders } from '../store/slices/salesOrdersSlice';
 import { attachCustomerOrderMetrics } from '../utils/analytics';
+import { motion } from 'framer-motion';
 
 const formatCurrency = (val) =>
   new Intl.NumberFormat('en-IN', {
@@ -15,6 +16,60 @@ const formatCurrency = (val) =>
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(val);
+
+function AnimatedNumber({ value, formatter }) {
+  const [display, setDisplay] = useState(value);
+  const prev = useRef(value);
+
+  useEffect(() => {
+    const from = prev.current;
+    prev.current = value;
+    if (from === value) return;
+    let start = null;
+    const duration = 800; // ms
+    const step = (ts) => {
+      if (!start) start = ts;
+      const progress = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const currentVal = from + (value - from) * ease;
+      setDisplay(currentVal);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    const frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
+  }, [value]);
+
+  return <>{formatter ? formatter(display) : Math.round(display).toLocaleString()}</>;
+}
+
+const cardVariants = {
+  initial: { opacity: 0, y: 24 },
+  animate: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: index * 0.1,
+      duration: 0.5,
+      ease: [0.23, 1, 0.32, 1],
+    },
+  }),
+  hover: {
+    y: -4,
+    scale: 1.015,
+    boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.25)',
+    transition: { duration: 0.25, ease: 'easeOut' },
+  },
+};
+
+const iconVariants = {
+  hover: {
+    scale: 1.15,
+    rotate: 8,
+    transition: { type: 'spring', stiffness: 300, damping: 15 },
+  },
+};
 
 function GInput({ label, value, onChange, error, type = 'text', min, step, placeholder, autoFocus }) {
   const [foc, setFoc] = useState(false);
@@ -68,13 +123,13 @@ function CustModal({ data, onChange, onSave, onCancel, errors, isNew, isSaving }
 
   return (
     <Modal onClose={onCancel}>
-      <div className="w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
+      <form onSubmit={(e) => { e.preventDefault(); onSave(); }} className="w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
         <div className="p-5 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
           <div>
             <h2 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">{isNew ? 'Add Customer' : 'Edit Customer'}</h2>
             <p className="text-[12px] text-gray-600 dark:text-gray-400 mt-1">{isNew ? 'Create a persistent customer profile in the backend' : `Editing ${data.name}`}</p>
           </div>
-          <button onClick={onCancel} className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white bg-black/5 dark:bg-white/5 rounded-lg transition-colors border border-black/10 dark:border-white/10">
+          <button type="button" onClick={onCancel} className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white bg-black/5 dark:bg-white/5 rounded-lg transition-colors border border-black/10 dark:border-white/10">
             <span className="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
@@ -97,14 +152,14 @@ function CustModal({ data, onChange, onSave, onCancel, errors, isNew, isSaving }
         </div>
 
         <div className="p-5 border-t border-black/10 dark:border-white/10 flex justify-end gap-3 bg-black/20 rounded-b-lg">
-          <button onClick={onCancel} className="px-4 py-2 text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:text-white hover:bg-black/5 dark:bg-white/5 rounded-lg transition-colors">
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-[13px] font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:text-white hover:bg-black/5 dark:bg-white/5 rounded-lg transition-colors">
             Cancel
           </button>
-          <button onClick={onSave} disabled={isSaving} className="px-5 py-2 text-[13px] font-bold bg-executive-blue hover:brightness-110 text-gray-900 dark:text-white rounded-lg transition-all shadow-lg shadow-executive-blue/20 disabled:opacity-70">
+          <button type="submit" disabled={isSaving} className="px-5 py-2 text-[13px] font-bold bg-executive-blue hover:brightness-110 text-gray-900 dark:text-white rounded-lg transition-all shadow-lg shadow-executive-blue/20 disabled:opacity-70">
             {isSaving ? 'Saving...' : isNew ? 'Add Customer' : 'Save Changes'}
           </button>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }
@@ -294,46 +349,91 @@ export default function Customers() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 font-[Manrope]">
-        <div className="glass-panel p-6 rounded-lg card-light-source">
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={0}
+          className="glass-panel p-6 rounded-lg card-light-source cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total Clients</span>
-            <span className="material-symbols-outlined text-gray-500 text-lg">group</span>
+            <motion.span variants={iconVariants} className="material-symbols-outlined text-gray-500 text-lg">group</motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{stats.total}</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={stats.total} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Persisted in MongoDB</p>
-        </div>
-        <div className="glass-panel p-6 rounded-lg card-light-source border-l-emerald-500/40">
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={1}
+          className="glass-panel p-6 rounded-lg card-light-source border-l-emerald-500/40 cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Active</span>
-            <span className="material-symbols-outlined text-emerald-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>person_check</span>
+            <motion.span
+              variants={iconVariants}
+              className="material-symbols-outlined text-emerald-500 text-lg"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              person_check
+            </motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{stats.active}</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={stats.active} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Currently active accounts</p>
-        </div>
-        <div className="glass-panel p-6 rounded-lg card-light-source">
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={2}
+          className="glass-panel p-6 rounded-lg card-light-source cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Inactive</span>
-            <span className="material-symbols-outlined text-gray-500 text-lg">person_off</span>
+            <motion.span variants={iconVariants} className="material-symbols-outlined text-gray-500 text-lg">person_off</motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{stats.inactive}</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={stats.inactive} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Dormant accounts</p>
-        </div>
-        <div className="glass-panel p-6 rounded-lg card-light-source">
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={3}
+          className="glass-panel p-6 rounded-lg card-light-source cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Lifetime Value</span>
-            <span className="material-symbols-outlined text-gray-500 text-lg">loyalty</span>
+            <motion.span variants={iconVariants} className="material-symbols-outlined text-gray-500 text-lg">loyalty</motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{formatCurrency(stats.spent)}</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={stats.spent} formatter={formatCurrency} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Live sales-order revenue</p>
-        </div>
+        </motion.div>
       </div>
 
       <div className="glass-panel rounded-lg flex flex-col font-[Manrope] mb-8">
