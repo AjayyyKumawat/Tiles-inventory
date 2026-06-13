@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../store/slices/inventorySlice';
 import { fetchSalesOrders } from '../store/slices/salesOrdersSlice';
 import { buildRevenueSeries, buildTopProducts } from '../utils/analytics';
+import { motion } from 'framer-motion';
 
 const PERIOD_CONFIG = {
   'Last 30 Days': { days: 30, months: 2 },
@@ -17,6 +18,60 @@ const formatCurrency = (val) =>
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(val);
+
+function AnimatedNumber({ value, formatter }) {
+  const [display, setDisplay] = useState(value);
+  const prev = useRef(value);
+
+  useEffect(() => {
+    const from = prev.current;
+    prev.current = value;
+    if (from === value) return;
+    let start = null;
+    const duration = 800; // ms
+    const step = (ts) => {
+      if (!start) start = ts;
+      const progress = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const currentVal = from + (value - from) * ease;
+      setDisplay(currentVal);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    const frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
+  }, [value]);
+
+  return <>{formatter ? formatter(display) : Math.round(display).toLocaleString()}</>;
+}
+
+const cardVariants = {
+  initial: { opacity: 0, y: 24 },
+  animate: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: index * 0.1,
+      duration: 0.5,
+      ease: [0.23, 1, 0.32, 1],
+    },
+  }),
+  hover: {
+    y: -4,
+    scale: 1.015,
+    boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.25)',
+    transition: { duration: 0.25, ease: 'easeOut' },
+  },
+};
+
+const iconVariants = {
+  hover: {
+    scale: 1.15,
+    rotate: 8,
+    transition: { type: 'spring', stiffness: 300, damping: 15 },
+  },
+};
 
 function filterOrdersByPeriod(orders, period) {
   const config = PERIOD_CONFIG[period];
@@ -158,46 +213,91 @@ export default function Reports() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 font-[Manrope]">
-        <div className="glass-panel p-6 rounded-lg card-light-source">
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={0}
+          className="glass-panel p-6 rounded-lg card-light-source cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total Revenue</span>
-            <span className="material-symbols-outlined text-gray-500 text-lg">payments</span>
+            <motion.span variants={iconVariants} className="material-symbols-outlined text-gray-500 text-lg">payments</motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{formatCurrency(summary.totalRevenue)}</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={summary.totalRevenue} formatter={formatCurrency} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Sales order value for {period.toLowerCase()}</p>
-        </div>
-        <div className="glass-panel p-6 rounded-lg card-light-source">
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={1}
+          className="glass-panel p-6 rounded-lg card-light-source cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total Costs</span>
-            <span className="material-symbols-outlined text-gray-500 text-lg">account_balance_wallet</span>
+            <motion.span variants={iconVariants} className="material-symbols-outlined text-gray-500 text-lg">account_balance_wallet</motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{formatCurrency(summary.totalCosts)}</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={summary.totalCosts} formatter={formatCurrency} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Estimated from tile cost price and sold quantity</p>
-        </div>
-        <div className="glass-panel p-6 rounded-lg card-light-source border-l-emerald-500/40">
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={2}
+          className="glass-panel p-6 rounded-lg card-light-source border-l-emerald-500/40 cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Net Profit</span>
-            <span className="material-symbols-outlined text-emerald-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>monitoring</span>
+            <motion.span
+              variants={iconVariants}
+              className="material-symbols-outlined text-emerald-500 text-lg"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              monitoring
+            </motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{formatCurrency(summary.netProfit)}</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={summary.netProfit} formatter={formatCurrency} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Revenue minus estimated cost of goods sold</p>
-        </div>
-        <div className="glass-panel p-6 rounded-lg card-light-source">
+        </motion.div>
+
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={3}
+          className="glass-panel p-6 rounded-lg card-light-source cursor-default"
+        >
           <div className="flex justify-between items-start mb-4">
             <span className="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">Avg Margin</span>
-            <span className="material-symbols-outlined text-gray-500 text-lg">percent</span>
+            <motion.span variants={iconVariants} className="material-symbols-outlined text-gray-500 text-lg">percent</motion.span>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">{summary.avgMargin.toFixed(1)}%</h3>
+            <h3 className="text-[48px] font-bold text-gray-900 dark:text-white leading-[1.1] tracking-[-0.02em]">
+              <AnimatedNumber value={summary.avgMargin} formatter={(val) => `${val.toFixed(1)}%`} />
+            </h3>
           </div>
           <p className="text-[11px] text-gray-500 mt-2">Profitability across filtered orders</p>
-        </div>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 font-[Manrope] mb-8">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -16,6 +16,7 @@ import {
 import { fetchProducts } from '../store/slices/inventorySlice';
 import { fetchSalesOrders } from '../store/slices/salesOrdersSlice';
 import { buildCategoryDistribution, buildRevenueSeries } from '../utils/analytics';
+import { motion } from 'framer-motion';
 
 const formatCurrency = (val) =>
   new Intl.NumberFormat('en-IN', {
@@ -23,6 +24,60 @@ const formatCurrency = (val) =>
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(val);
+
+function AnimatedNumber({ value, formatter }) {
+  const [display, setDisplay] = useState(value);
+  const prev = useRef(value);
+
+  useEffect(() => {
+    const from = prev.current;
+    prev.current = value;
+    if (from === value) return;
+    let start = null;
+    const duration = 800; // ms
+    const step = (ts) => {
+      if (!start) start = ts;
+      const progress = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const currentVal = from + (value - from) * ease;
+      setDisplay(currentVal);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    const frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
+  }, [value]);
+
+  return <>{formatter ? formatter(display) : Math.round(display).toLocaleString()}</>;
+}
+
+const cardVariants = {
+  initial: { opacity: 0, y: 24 },
+  animate: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: index * 0.1,
+      duration: 0.5,
+      ease: [0.23, 1, 0.32, 1],
+    },
+  }),
+  hover: {
+    y: -4,
+    scale: 1.015,
+    boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.25)',
+    transition: { duration: 0.25, ease: 'easeOut' },
+  },
+};
+
+const iconVariants = {
+  hover: {
+    scale: 1.15,
+    rotate: 8,
+    transition: { type: 'spring', stiffness: 300, damping: 15 },
+  },
+};
 
 function RevenueTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
@@ -144,12 +199,21 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        <div className="glass-panel executive-gradient p-6 rounded-2xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-200">
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={0}
+          className="glass-panel executive-gradient p-6 rounded-2xl relative overflow-hidden cursor-default"
+        >
           <p className="text-[12px] text-theme-textSub uppercase tracking-wider font-semibold mb-2">Booked Sales Value</p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[32px] font-semibold text-gray-900 dark:text-white leading-tight">{formatCurrency(totalSales)}</h3>
-            <span className="text-theme-green text-xs font-medium flex items-center">
-              <span className="material-symbols-outlined text-xs">database</span>
+            <h3 className="text-[32px] font-semibold text-gray-900 dark:text-white leading-tight">
+              <AnimatedNumber value={totalSales} formatter={formatCurrency} />
+            </h3>
+            <span className="text-theme-green text-xs font-medium flex items-center gap-1">
+              <motion.span variants={iconVariants} className="material-symbols-outlined text-xs">database</motion.span>
               {salesOrders.length} orders
             </span>
           </div>
@@ -159,12 +223,21 @@ export default function Dashboard() {
               style={{ width: `${Math.min(100, salesOrders.length * 8)}%` }}
             />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel executive-gradient p-6 rounded-2xl relative overflow-hidden hover:-translate-y-1 transition-transform duration-200">
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={1}
+          className="glass-panel executive-gradient p-6 rounded-2xl relative overflow-hidden cursor-default"
+        >
           <p className="text-[12px] text-theme-textSub uppercase tracking-wider font-semibold mb-2">Inventory On Hand</p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[32px] font-semibold text-gray-900 dark:text-white leading-tight">{totalItems.toLocaleString()}</h3>
+            <h3 className="text-[32px] font-semibold text-gray-900 dark:text-white leading-tight">
+              <AnimatedNumber value={totalItems} />
+            </h3>
             <span className="text-theme-textSub text-xs font-medium">units</span>
           </div>
           <div className="mt-4 flex gap-1">
@@ -173,12 +246,21 @@ export default function Dashboard() {
             <div className="h-1 flex-1 bg-theme-blue/30 rounded-full origin-left" />
             <div className="h-1 flex-1 bg-black/5 dark:bg-white/5 rounded-full" />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel executive-gradient p-6 rounded-2xl relative overflow-hidden hover:-translate-y-1 transition-transform duration-200">
+        <motion.div
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          custom={2}
+          className="glass-panel executive-gradient p-6 rounded-2xl relative overflow-hidden cursor-default"
+        >
           <p className="text-[12px] text-theme-textSub uppercase tracking-wider font-semibold mb-2">Open Sales Orders</p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[32px] font-semibold text-gray-900 dark:text-white leading-tight">{activeSOs}</h3>
+            <h3 className="text-[32px] font-semibold text-gray-900 dark:text-white leading-tight">
+              <AnimatedNumber value={activeSOs} />
+            </h3>
           </div>
           <div className="mt-4 flex items-center justify-between">
             <div className="flex -space-x-2">
@@ -188,7 +270,7 @@ export default function Dashboard() {
             </div>
             <p className="text-[10px] text-theme-textSub font-medium uppercase">{salesOrders.length} Total Orders</p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
