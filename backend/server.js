@@ -83,11 +83,7 @@ if (!dbURI) {
         if (!adminUser) {
           adminUser = await User.findOne({ email: 'admin@gmail.com' });
         }
-        if (adminUser) {
-          adminUser.email = 'admin@gmail.com';
-          adminUser.password = 'admin123'; // pre-save will auto-encrypt
-          await adminUser.save();
-        } else {
+        if (!adminUser) {
           await User.create({
             name: 'Ajay Kumawat',
             email: 'admin@gmail.com',
@@ -100,10 +96,7 @@ if (!dbURI) {
 
         // Staff
         let staffUser = await User.findOne({ email: 'staff@company.com' });
-        if (staffUser) {
-          staffUser.password = 'password123'; // pre-save will auto-encrypt
-          await staffUser.save();
-        } else {
+        if (!staffUser) {
           await User.create({
             name: 'Priya Sharma',
             email: 'staff@company.com',
