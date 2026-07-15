@@ -14,6 +14,8 @@ function getStatus(stock, reorderPoint) {
     return { label: 'Out of Stock', dot: 'bg-red-500',     text: 'text-red-400'     };
   if (stock < reorderPoint)
     return { label: 'Low Stock',    dot: 'bg-amber-500',   text: 'text-amber-400'   };
+  if (stock < 100)
+    return { label: 'Limited Stock', dot: 'bg-orange-500',  text: 'text-orange-400'  };
   return   { label: 'Full Stock',   dot: 'bg-emerald-500', text: 'text-emerald-400' };
 }
 
@@ -438,7 +440,7 @@ export default function Inventory() {
     if (auditStatus === 'idle') dispatch(fetchAuditLogs());
   }, [auditStatus, dispatch]);
 
-  const FILTER_OPTIONS = ['All', 'Full Stock', 'Low Stock', 'Out of Stock'];
+  const FILTER_OPTIONS = ['All', 'Full Stock', 'Limited Stock', 'Low Stock', 'Out of Stock'];
   const TILE_SIZES     = ['2×2 ft', '2×4 ft', '16×16 in', '20×20 in', '12×18 in', '1×1 ft'];
 
   // ── Filtered list ─────────────────────────────────────────────────────────
@@ -692,8 +694,8 @@ export default function Inventory() {
                     >
                       {FILTER_OPTIONS.map((opt) => {
                         const active = filterStatus === opt;
-                        const dotColor = { 'Full Stock': 'bg-emerald-500', 'Low Stock': 'bg-amber-500', 'Out of Stock': 'bg-red-500' };
-                        const txtColor = { 'Full Stock': 'text-emerald-400', 'Low Stock': 'text-amber-400', 'Out of Stock': 'text-red-400' };
+                        const dotColor = { 'Full Stock': 'bg-emerald-500', 'Limited Stock': 'bg-orange-500', 'Low Stock': 'bg-amber-500', 'Out of Stock': 'bg-red-500' };
+                        const txtColor = { 'Full Stock': 'text-emerald-400', 'Limited Stock': 'text-orange-400', 'Low Stock': 'text-amber-400', 'Out of Stock': 'text-red-400' };
                         return (
                           <motion.button
                             key={opt}
