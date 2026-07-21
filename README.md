@@ -8,8 +8,14 @@ I built this because a relative runs a tile distribution business and was tracki
 
 ## 📸 Preview
 
-> _Drop a screenshot or GIF of the dashboard here — drag and drop into this file on GitHub_
-
+> <img width="1917" height="907" alt="image" src="https://github.com/user-attachments/assets/95e6f3ae-c814-4c13-845e-87949a1cc619" />
+<img width="1917" height="901" alt="image" src="https://github.com/user-attachments/assets/4741142b-9def-48be-9c50-5d0c162d8745" />
+<img width="1536" height="597" alt="image" src="https://github.com/user-attachments/assets/670986dd-d906-4505-93d9-31579b343849" />
+<img width="1917" height="897" alt="image" src="https://github.com/user-attachments/assets/3a94f73a-c302-4e74-9cdf-329fe40e8f95" />
+<img width="1911" height="817" alt="image" src="https://github.com/user-attachments/assets/13cb5f74-2d95-4a8b-a72b-04ffbc23b453" />
+<img width="1891" height="897" alt="image" src="https://github.com/user-attachments/assets/c339e935-1f2c-465b-a9ff-a0f380ea6db6" />
+<img width="1917" height="817" alt="image" src="https://github.com/user-attachments/assets/2a5cb98e-afe9-449a-85d5-754f3851d3d1" />
+<img width="1917" height="817" alt="image" src="https://github.com/user-attachments/assets/83e3827a-4ae4-4cfb-b806-d4b3af89c5f3" />
 ---
 
 ## ⚡ Performance (Lighthouse)
