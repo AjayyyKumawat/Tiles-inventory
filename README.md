@@ -1,103 +1,123 @@
-# 🏢 Enterprise Tiles Inventory & Order Management OS
+# Tiles Inventory & Order Management System
 
-A professional-grade, full-stack Enterprise Resource Planning (ERP) platform designed specifically for tile retailers, wholesale distributors, and suppliers. This system features real-time inventory tracking, secure role-based access control (RBAC), sales order management, transaction auditing, and business analytics.
+I built this because a relative runs a tile distribution business and was tracking everything in WhatsApp messages and paper ledgers. This is a full-stack ERP that replaced that — real-time stock tracking, sales orders, staff access control, and a full audit trail of every change made.
 
-🌐 **Production Live Demo**: https://tiles-inventory-alpha.vercel.app/reports
-
----
-
-## ⚡ Engineering & Architecture Highlights
-This platform was built to demonstrate modern full-stack engineering standards, prioritizing security, state management, and highly polished user experiences:
-
-*   **Role-Based Access Control (RBAC)**: Secure backend middleware restricting actions based on roles (`Owner`, `Admin`, `Staff`). Route permissions are enforced on both the client (via React Router guards) and the API server.
-*   **Database Transaction Syncing**: Changes to products and sales orders automatically sync to MongoDB collections while generating detailed transaction history inside a read-only system-wide audit trail.
-*   **Optimistic State Updates**: Redux Toolkit is utilized for fluid, lag-free UI interactions, caching active sessions, and syncing state seamlessly with asynchronous API middleware.
-*   **High-Fidelity UI/UX**: Implements a glassmorphic aesthetic built on a dark slate palette, using spring-physics micro-animations (`framer-motion`), customized statistical charts (`recharts`), and responsive layouts.
-*   **Production Security**: Secured with JWT-based session tokens, hashed passwords (`bcryptjs`), CORS authorization policies, and automated token invalidation.
+**Live:** https://tiles-inventory-alpha.vercel.app/
+&nbsp;&nbsp;|&nbsp;&nbsp; Login: `admin@gmail.com` / `admin123`
 
 ---
 
-## 🛠️ Technology Stack
+## What it does
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | React 19, Redux Toolkit, React Router 7, Tailwind CSS 4, Framer Motion, Recharts, Axios |
-| **Backend** | Node.js, Express, MongoDB Atlas, Mongoose, JWT (JSON Web Tokens), Bcrypt.js |
-| **Tooling** | Vite 8, ESLint 9, Git, npm |
+The system handles the full cycle of a tile business:
 
----
-
-## 📸 Key Features & Capabilities
-
-*   **📦 Real-time Tile Inventory**: Manage stock (in boxes), brands, categories/sizes, reorder points, cost prices, and selling prices. Automated alert badges flash dynamically when items fall below low stock thresholds.
-*   **🧾 Sales Orders (SO)**: Process outbound customer orders, auto-fill unit pricing from stock records, validate real-time quantity availability, and update inventory instantly upon fulfillment.
-*   **👥 Staff Directory**: Complete administrative control for Owners and Admins to register new staff, manage credentials, edit details, or revoke workspace access.
-*   **📈 Interactive Business Analytics**: Dynamic KPI dashboards summarizing total designs, box counts, restock priorities, sales margins, and revenue analytics.
-*   **🔍 System Audit Logs**: A tamper-proof transaction log tracing every record addition, quantity update, order fulfillment, and user profile modification with detailed "before-and-after" status.
-*   **📥 Enterprise CSV Exporting**: Export customized, pre-formatted CSV spreadsheets of your entire inventory, suppliers, or sales logs instantly.
+- **Inventory** — track stock in boxes, manage brands/categories/sizes, set reorder points. Badges flash automatically when items go below threshold.
+- **Sales Orders** — create outbound orders, auto-fills unit price from stock records, validates quantity before confirming, deducts inventory on fulfillment.
+- **Customers & Suppliers** — full contact management linked to orders and purchase records.
+- **Reports** — revenue, margins, restock priorities, and sales trends. Built with Recharts, filters by date range.
+- **Audit Log** — every action (product added, order placed, user modified) is logged with a before/after snapshot. Read-only, tamper-proof.
+- **Staff Access (RBAC)** — three roles: Owner, Admin, Staff. Permissions enforced on both the React Router layer and every Express endpoint. A Staff user literally cannot hit an Owner-only API route.
+- **CSV Export** — one click exports for inventory, suppliers, or sales history.
 
 ---
 
-## 🚀 Local Installation & Configuration
+## Tech
 
-### Prerequisites
-*   Node.js (v18 or higher)
-*   MongoDB Atlas account or local MongoDB instance
+| | |
+|:---|:---|
+| Frontend | React 19, Redux Toolkit, React Router 7, Tailwind CSS v4, Framer Motion, Recharts, Axios |
+| Backend | Node.js, Express.js, MongoDB Atlas, Mongoose |
+| Auth | JWT + bcrypt, CORS, auto token invalidation |
+| Build | Vite 8, ESLint 9 |
 
-### 1. Clone & Setup Workspace
+26 REST endpoints across 7 resources (Auth, Users, Products, Customers, Suppliers, Sales Orders, Audit Logs).
+
+---
+
+## Performance
+
+Ran Lighthouse on the deployed build:
+
+- Performance score: **21/22**
+- Total Blocking Time: **30ms**
+- Interaction to Next Paint: **60ms**
+- Cumulative Layout Shift: **0**
+
+Vite splits every route into its own chunk so users only load what they open. The heaviest page (Dashboard with all the charts) is 345 KB raw / 97 KB gzipped. Everything else is under 32 KB. Full build: 2,759 modules in 3.73s.
+
+---
+
+## Running locally
+
+You'll need Node 18+ and a MongoDB connection string (Atlas free tier works).
+
 ```bash
-git clone https://github.com/your-username/inventory-management-os.git
-cd inventory-management-os
+git clone https://github.com/AjayyyKumawat/Tiles-inventory.git
+cd Tiles-inventory
 ```
 
-### 2. Configure Backend Server
-Create a `.env` file in the `backend/` directory:
+**Backend:**
 ```bash
 cd backend
-touch .env
+npm install
 ```
-Add the following configuration:
+
+Create `backend/.env`:
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_secure_random_64_character_string
+MONGODB_URI=your_connection_string
+JWT_SECRET=any_long_random_string
 JWT_EXPIRES_IN=7d
 NODE_ENV=development
 ```
-Install dependencies and seed the development database:
-```bash
-npm install
-npm run dev # Starts backend server with Nodemon on port 5000
-```
-*(Note: The server will automatically seed initial demo accounts and product catalogs if connected to an empty collection).*
 
-### 3. Configure Frontend Client
-Return to the project root directory and set up the React client:
+```bash
+npm run dev   # seeds demo data automatically on first run
+```
+
+**Frontend** (new terminal):
 ```bash
 cd ..
 npm install
+npm run dev   # http://localhost:5173
 ```
-Start the frontend development server:
-```bash
-npm run dev # Starts Vite bundler on port 5173
-```
-Open `http://localhost:5173` in your browser.
+
+**Demo accounts:**
+
+| Role | Email | Password |
+|:---|:---|:---|
+| Owner | admin@gmail.com | admin123 |
+| Staff | staff@company.com | password123 |
 
 ---
 
-## 👥 Demo Credentials
-You can immediately test the RBAC layers with these pre-seeded roles:
+## A few decisions worth noting
 
-| Role | Email | Password | Access Privileges |
-| :--- | :--- | :--- | :--- |
-| **Owner / Owner** | `admin@gmail.com` | `admin123` | Full administrative control, billing, settings, staff directory |
-| **Staff Member** | `staff@company.com` | `password123` | Product listings, inventory levels, sales orders (restricted settings) |
+**Why Redux Toolkit over Context?** The app has several async flows that touch the same state — a sales order fulfillment updates inventory, generates an audit log entry, and refreshes the dashboard KPIs simultaneously. Context would have meant prop-drilling or multiple nested providers. RTK's slice pattern kept that clean.
+
+**Why route-level code splitting?** The Dashboard imports Recharts and Framer Motion which together push it past 300 KB. Splitting by route means the Login and Inventory pages load in under 30 KB — users who never open Reports never download that code.
+
+**RBAC on both ends** — frontend guards alone are cosmetic security. Every sensitive route in Express checks the JWT role independently so the API is safe even if someone bypasses the UI.
 
 ---
 
-## 🔒 Security & Code Standards
-*   **No API Keys Committed**: Environment variables are strictly ignored (`.gitignore`).
-*   **Linter Compliance**: High codebase hygiene adhering to strict ESLint configurations.
-*   **Pure ESM**: The entire project operates on native ECMAScript Modules (`type: "module"`).
-*   **Semantic Commits**: Follows Conventional Commits guidelines (`feat:`, `fix:`, `docs:`, `chore:`).
+## Structure
 
+```
+Tiles-inventory/
+├── client/
+│   └── src/
+│       ├── components/   # shared UI
+│       ├── pages/        # one file per route, each code-split
+│       ├── store/        # RTK slices
+│       └── App.jsx
+└── backend/
+    ├── models/
+    ├── routes/           # 26 endpoints, 7 resource files
+    ├── middleware/       # auth + role checks
+    └── server.js
+```
+
+---
+
+Ajay Kumawat — [LinkedIn](https://www.linkedin.com/in/ajay-kumawat-17a310292/) · ajaykumawat1703@gmail.com
