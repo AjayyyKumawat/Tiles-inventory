@@ -101,7 +101,7 @@ export default function Topbar({ onMenuClick }) {
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-theme-textMuted text-lg">search</span>
           <input 
             className="w-full bg-theme-bgInput border border-theme-border rounded-lg py-2 pl-10 pr-4 text-sm text-theme-text focus:border-executive-blue focus:ring-0 focus:bg-theme-bgHover transition-all placeholder:text-theme-textMuted outline-none" 
-            placeholder="Search inventory, SKUs, or batches..." 
+            placeholder="Search inventory..." 
             type="text"
           />
         </div>
