@@ -26,6 +26,26 @@ const app = express();
 app.use(cors()); // Allow requests from the React frontend
 app.use(express.json()); // Allow parsing of JSON request bodies
 
+// Database Connection
+const dbURI = process.env.MONGODB_URI;
+
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+// Ensure DB is connected before processing any requests
+app.use(async (req, res, next) => {
+  if (dbURI && cached.promise) {
+    try {
+      await cached.promise;
+    } catch (err) {
+      console.error('DB Connection Error in Middleware:', err);
+    }
+  }
+  next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -40,13 +60,12 @@ app.get('/', (req, res) => {
   res.send('Inventory Management API is running...');
 });
 
-// Database Connection
-const dbURI = process.env.MONGODB_URI;
+
 if (!dbURI) {
   console.warn('⚠️ MONGODB_URI is not defined. Skip database connection.');
-} else {
-  mongoose.connect(dbURI)
-    .then(async () => {
+} else if (!cached.promise) {
+  cached.promise = mongoose.connect(dbURI)
+    .then(async (mongoose) => {
       console.log('✅ Connected to MongoDB Atlas successfully!');
       
       if (process.env.SEED_DB === 'true') {
