@@ -25,7 +25,7 @@ router.post('/login', async (req, res) => {
     if (!user) {
       // Fallback: Check in the demo database
       const demoDb = mongoose.connection.useDb('demo_inventory_db', { useCache: true });
-      const DemoUser = demoDb.model('User');
+      const DemoUser = demoDb.models.User || demoDb.model('User', User.schema);
       user = await DemoUser.findOne({ email }).select('+password');
     }
 
