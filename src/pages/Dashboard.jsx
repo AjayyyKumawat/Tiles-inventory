@@ -160,7 +160,7 @@ export default function Dashboard() {
       <div className="mb-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
-            <h2 className="text-[48px] leading-[1.1] font-bold text-gray-900 dark:text-white tracking-[-0.02em]">
+            <h2 className="text-4xl md:text-[48px] leading-[1.1] font-bold text-gray-900 dark:text-white tracking-[-0.02em]">
               Dashboard Overview
             </h2>
             <p className="text-[16px] text-theme-textSub mt-2">
@@ -277,7 +277,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 glass-panel p-8 rounded-2xl flex flex-col">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h4 className="text-[24px] font-semibold text-gray-900 dark:text-white">Revenue Overview</h4>
+              <h4 className="text-xl md:text-[24px] font-semibold text-gray-900 dark:text-white">Revenue Overview</h4>
               <p className="text-sm text-theme-textSub">Monthly sales value derived from live orders</p>
             </div>
             <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-black/5 dark:border-white/5">
@@ -319,7 +319,7 @@ export default function Dashboard() {
 
         <div className="glass-panel p-8 rounded-2xl flex flex-col">
           <div className="mb-6">
-            <h4 className="text-[24px] font-semibold text-gray-900 dark:text-white">Stock by Category</h4>
+            <h4 className="text-xl md:text-[24px] font-semibold text-gray-900 dark:text-white">Stock by Category</h4>
             <p className="text-sm text-theme-textSub">Current backend inventory distribution</p>
           </div>
 
