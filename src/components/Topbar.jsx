@@ -136,7 +136,7 @@ export default function Topbar({ onMenuClick }) {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-12 w-[360px] bg-[#f8f9fa] dark:bg-[#0f0f0f] border border-black/10 dark:border-white/8 rounded-lg shadow-2xl overflow-hidden animate-modal-pop font-[Manrope] z-50">
+            <div className="absolute right-[-40px] sm:right-0 top-12 w-[90vw] sm:w-[360px] bg-[#f8f9fa] dark:bg-[#0f0f0f] border border-black/10 dark:border-white/8 rounded-lg shadow-2xl overflow-hidden animate-modal-pop font-[Manrope] z-50">
               <div className="px-4 py-3 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">Notifications</h3>
                 {unreadCount > 0 && (
@@ -234,7 +234,7 @@ export default function Topbar({ onMenuClick }) {
           </button>
 
           {showProfile && (
-            <div className="absolute right-0 top-12 w-[260px] bg-[#f8f9fa] dark:bg-[#0f0f0f] border border-black/10 dark:border-white/8 rounded-lg shadow-2xl overflow-hidden animate-modal-pop font-[Manrope] z-50">
+            <div className="absolute right-[-10px] sm:right-0 top-12 w-[90vw] sm:w-[260px] bg-[#f8f9fa] dark:bg-[#0f0f0f] border border-black/10 dark:border-white/8 rounded-lg shadow-2xl overflow-hidden animate-modal-pop font-[Manrope] z-50">
               {/* User Info Header */}
               <div className="px-4 py-4 border-b border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-3">
