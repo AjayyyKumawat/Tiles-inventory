@@ -145,6 +145,7 @@ export default function Login() {
                   <span>Email: <code className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono">staff@company.com</code></span>
                   <span>Pass: <code className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono">password123</code></span>
                 </div>
+                
               </button>
             </div>
           </div>

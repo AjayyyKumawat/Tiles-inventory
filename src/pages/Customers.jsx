@@ -123,7 +123,7 @@ function CustModal({ data, onChange, onSave, onCancel, errors, isNew, isSaving }
 
   return (
     <Modal onClose={onCancel}>
-      <form onSubmit={(e) => { e.preventDefault(); onSave(); }} className="w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
+      <form onSubmit={(e) => { e.preventDefault(); onSave(); }} className="w-full max-w-lg mx-4 sm:mx-0 sm:w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
         <div className="p-5 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
           <div>
             <h2 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">{isNew ? 'Add Customer' : 'Edit Customer'}</h2>

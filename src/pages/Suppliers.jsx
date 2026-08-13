@@ -165,7 +165,7 @@ function SuppModal({ data, onChange, onSave, onCancel, errors, isNew }) {
 
   return (
     <Modal onClose={onCancel}>
-      <form onSubmit={(e) => { e.preventDefault(); onSave(); }} className="w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
+      <form onSubmit={(e) => { e.preventDefault(); onSave(); }} className="w-full max-w-lg mx-4 sm:mx-0 sm:w-[560px] max-h-[90vh] glass-panel rounded-lg shadow-2xl flex flex-col">
         {/* Header */}
         <div className="p-5 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
           <div>
@@ -234,7 +234,7 @@ function SuppModal({ data, onChange, onSave, onCancel, errors, isNew }) {
 function DeleteConfirm({ name, onConfirm, onCancel }) {
   return (
     <Modal onClose={onCancel}>
-      <div className="w-[400px] glass-panel rounded-lg shadow-2xl p-6 flex flex-col gap-5">
+      <div className="w-full max-w-md mx-4 sm:mx-0 sm:w-[400px] glass-panel rounded-lg shadow-2xl p-6 flex flex-col gap-5">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/20 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-red-400 text-[20px]">delete_forever</span>

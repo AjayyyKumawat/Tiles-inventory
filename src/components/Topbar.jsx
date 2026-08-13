@@ -185,7 +185,7 @@ export default function Topbar({ onMenuClick }) {
           </button>
 
           {showHistory && (
-            <div className="absolute right-0 top-12 w-[340px] bg-[#f8f9fa] dark:bg-[#0f0f0f] border border-black/10 dark:border-white/8 rounded-lg shadow-2xl overflow-hidden animate-modal-pop font-[Manrope] z-50">
+            <div className="absolute right-[-20px] sm:right-0 top-12 w-[90vw] sm:w-[340px] bg-[#f8f9fa] dark:bg-[#0f0f0f] border border-black/10 dark:border-white/8 rounded-lg shadow-2xl overflow-hidden animate-modal-pop font-[Manrope] z-50">
               <div className="px-4 py-3 border-b border-black/5 dark:border-white/5">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">Recent Activity</h3>
               </div>
