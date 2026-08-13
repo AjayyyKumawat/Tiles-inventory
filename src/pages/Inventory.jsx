@@ -606,17 +606,17 @@ export default function Inventory() {
       <div className="glass-panel rounded-lg flex flex-col font-[Manrope] mb-8">
 
         {/* Toolbar */}
-        <div className="px-6 py-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between gap-4">
+        <div className="px-6 py-4 border-b border-black/10 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
           {/* Left side: Search + Audit Logs toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
             {/* Search */}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center w-full sm:w-auto">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-[18px] pointer-events-none">search</span>
               <input
                 type="text" placeholder={auditOpen ? 'Search audit logs…' : 'Search tiles…'}
                 value={search} onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 pr-8 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[13px] text-gray-900 dark:text-white placeholder:text-gray-600 focus:border-executive-blue outline-none transition-all w-52 hover:border-black/20 dark:border-white/20"
+                className="pl-9 pr-8 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg text-[13px] text-gray-900 dark:text-white placeholder:text-gray-600 focus:border-executive-blue outline-none transition-all w-full sm:w-52 hover:border-black/20 dark:border-white/20"
               />
               {search && (
                 <motion.button
